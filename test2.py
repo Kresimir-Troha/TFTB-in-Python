@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import fmlin as fmlin
-
+#ftt - This function computes the one-dimensional n-point discrete Fourier Transform (DFT) with the efficient Fast Fourier Transform (FFT) algorithm
+#fttshift - Shift the zero-frequency component to the center of the spectrum
 N = 128
 fnormi = 0
 fnormf = 0.5
