@@ -30,7 +30,7 @@ def amexpo1s(n = None, t0 = None, t = None):
 		y = np.exp(-np.sqrt(np.pi) * tmt0 / t) * (tmt0 >= 0.0)
 	return y
 
-N_val = 100  # Set your desired value for N
-computed_y = amexpo1s(N_val)
-plt.plot(computed_y)
-plt.show()
+#N_val = 100  
+#computed_y = amexpo1s(N_val)
+#plt.plot(computed_y)
+#plt.show()

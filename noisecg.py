@@ -15,50 +15,40 @@
 #  (at your option) any later version.
 
 import numpy as np
+from scipy.signal import hilbert
+import math
+from nextpow2 import nextpow2
 
 def noisecg(n, a1 = None, a2 = None):
 
-	if n <= 0:
-		raise ValueError('The signal length must be strictly positive');
-		return
-
-	if a1 is None and a2 is None:
-		if n <= 2:
-			noise = (np.random.randn(n) + 1j * np.random.randn(n)) / np.sqrt(2)
-		else:
-			noise = np.random.randn(2 ** (int(np.ceil(np.log2(n)))))
-	elif a2 is None:
-		if np.abs(a1) >= 1.0:
-			raise ValueError('for a first order filter, abs(a1) must be strictly lower than 1')
-		elif abs(a1) <= np.finfo(float).eps:  #smallest showable number
-			if n <= 2:
-				noise = (np.random.randn(n) + 1j * np.random.randn(n)) / np.sqrt(2)
-			else:
-				noise = np.random.randn(n)
-		else:
-			if N <= 2:
-				noise = (np.random.randn(n) + 1j * np.random.randn(n)) / np.sqrt(2)
-			else:
-				Nnoise = int(np.ceil(N - 2.0 / np.log(a1)))
-				noise = np.random.randn(2 ** (int(np.ceil(np.log2(Nnoise)))))
-			k = [np.sqrt(1.0 - a1 ** 2)]
-			l = [1, -a1]
-			noise = lfilter(k, l, noise)
+	assert n > 0
+	if n <= 2:
+		noise = (np.random.randn(n, 1) + 1j * np.random.randn(n, 1.)) / np.sqrt(2.)
 	else:
-		if any(np.roots([1, -a1, -a2]) > 1):
-			raise ValueError('Unstable filter')
-		else:
-			if n <= 2:
-				noise = (np.random.randn(N) + 1j * np.random.randn(N)) / np.sqrt(2)
-			else:
-				Nnoise = Nnoise = int(np.ceil(N - 2.0 / np.log(max(np.roots([1, -a1, -a2])))))
-				noise = np.random.randn(2 ** (int(np.ceil(np.log2(Nnoise)))))
-
-			b = np.sqrt(1.0 - a1 ** 2 - a2 ** 2)
-			a = [1, -a1, -a2]
-			noise = lfilter(b, a, noise)
-    #The Hilbert transform is related to the actual data by a 90-degree phase shift; sines become cosines and vice versa
-	if n > 2:
-		noise = (np.fft.fft(noise)).conj() / np.std(noise) / np.sqrt(2)
-		noise = noise[len(noise) - np.arrange(n)]
+		noise = np.random.randn((2 ** nextpow2(n)))
+		noise = hilbert(noise) / noise.std() / np.sqrt(2)
+		noise = noise[len(noise) - np.arange(n - 1, -1, -1) - 1]
 	return noise
+
+def noisecgN(n, a1=None, a2=None):
+    assert n > 0
+    
+    if n <= 2:
+        noise = (np.random.randn(n, 1) + 1j * np.random.randn(n, 1.)) / np.sqrt(2.)
+    else:
+        noise = np.random.randn((2 ** nextpow2(n)))
+
+    if a1 is not None:
+        if abs(a1) >= 1:
+            raise ValueError('For a first-order filter, abs(a1) must be strictly lower than 1')
+        elif abs(a1) < np.finfo(np.float32).eps:
+            noise = (np.random.randn(n, 1) + 1j * np.random.randn(n, 1.)) / np.sqrt(2.)
+        else:
+            nNoise = math.ceil(n - 2.0 / math.log(a1))
+            noise = filter([np.sqrt(1.0 - a1 ** 2)],  noise)
+
+    if n > 2:
+        noise = hilbert(noise) / noise.std() / np.sqrt(2)
+        noise = noise[len(noise) - np.arange(n - 1, -1, -1) - 1]
+
+    return noise
